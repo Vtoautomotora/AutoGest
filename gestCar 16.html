@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>GestCar</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+html{color-scheme:light!important}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9!important;color:#1e293b!important;min-height:100vh;-webkit-font-smoothing:antialiased}
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#dbeafe,#f1f5f9)!important}
+.auth-box{background:#fff!important;border-radius:16px;box-shadow:0 4px 32px rgba(0,0,0,.10);padding:40px 36px;width:100%;max-width:420px}
+.auth-brand{text-align:center;margin-bottom:28px}
+.auth-brand .icon{font-size:42px;display:block;margin-bottom:8px}
+.auth-brand h1{font-size:26px;font-weight:800;color:#1e293b;letter-spacing:-.5px}
+.auth-brand h1 em{font-style:normal;color:#2563eb}
+.auth-brand p{font-size:13px;color:#94a3b8;margin-top:4px;font-weight:500}
+.seg-tabs{display:flex;background:#f1f5f9;border-radius:10px;padding:4px;margin-bottom:24px;gap:4px}
+.seg-tab{flex:1;padding:9px 12px;font-family:inherit;font-size:13.5px;font-weight:600;border:none;background:transparent;color:#64748b;border-radius:7px;cursor:pointer;transition:all .15s}
+.seg-tab.active{background:#fff!important;color:#2563eb;box-shadow:0 1px 6px rgba(0,0,0,.10)}
+.auth-panel{display:none}.auth-panel.active{display:block}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:#475569;margin-bottom:5px}
+.field input,.field select{width:100%;padding:10px 13px;font-family:inherit;font-size:14px;color:#1e293b!important;background:#f8fafc!important;border:1.5px solid #e2e8f0!important;border-radius:8px;outline:none;transition:border-color .15s,box-shadow .15s}
+.field input:focus,.field select:focus{border-color:#2563eb!important;background:#fff!important;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.field input::placeholder{color:#cbd5e1}
+.auth-submit{width:100%;margin-top:6px;padding:11px;font-family:inherit;font-size:14.5px;font-weight:700;color:#fff;background:#2563eb;border:none;border-radius:9px;cursor:pointer;transition:background .15s;box-shadow:0 2px 12px rgba(37,99,235,.25)}
+.auth-submit:hover{background:#1d4ed8}
+.msg-err{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:9px 13px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:14px;display:none}
+.msg-ok{background:#f0fdf4;border:1px solid #86efac;color:#16a34a;padding:9px 13px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:14px;display:none}
+.remember-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.remember-row input[type=checkbox]{width:15px;height:15px;accent-color:#2563eb;flex-shrink:0}
+.remember-row label{font-size:13px;font-weight:500;color:#64748b;cursor:pointer}
+.pwd-strength{height:4px;border-radius:2px;margin-top:6px;background:#e2e8f0;overflow:hidden}
+.pwd-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0}
+.pwd-hint{font-size:11.5px;margin-top:4px;font-weight:500}
+.quick-banner{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:16px;display:none}
+.quick-banner p{font-size:13px;color:#1d4ed8;font-weight:600;margin-bottom:8px}
+.quick-banner button{width:100%;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.quick-banner button:hover{background:#1d4ed8}
+.divider-or{text-align:center;font-size:12px;color:#94a3b8;margin:12px 0;display:none}
+
+
+
+#app-screen{display:none}
+.topbar{background:#fff!important;border-bottom:1px solid #e2e8f0;height:58px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.topbar-logo{font-size:18px;font-weight:800;color:#1e293b;letter-spacing:-.4px}
+.topbar-logo em{font-style:normal;color:#2563eb}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-name{font-size:13px;font-weight:600;color:#475569;background:#f1f5f9;padding:5px 12px;border-radius:20px}
+.btn-logout,.btn-admin-top{font-family:inherit;font-size:12.5px;font-weight:600;background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 13px;cursor:pointer;transition:all .15s}
+.btn-logout{color:#64748b}.btn-logout:hover{color:#dc2626;border-color:#fca5a5;background:#fef2f2}
+.btn-admin-top{color:#475569}.btn-admin-top:hover{color:#2563eb;border-color:#bfdbfe;background:#eff6ff}
+.wrap{max-width:1200px;margin:0 auto;padding:28px 24px}
+.tabs{display:flex;gap:2px;background:#fff!important;border:1px solid #e2e8f0;border-radius:12px;padding:5px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.05);flex-wrap:wrap}
+.tab{font-family:inherit;font-size:13.5px;font-weight:600;color:#64748b;background:transparent;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab:hover:not(.active){background:#f1f5f9;color:#1e293b}
+.tab.active{background:#2563eb;color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.tab-export{background:#f0fdf4!important;color:#16a34a!important;border:1.5px solid #bbf7d0!important;margin-left:auto}
+.tab-export:hover{background:#dcfce7!important}
+.section{display:none}.section.active{display:block}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.kpi{background:#fff!important;border:1px solid #e2e8f0;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kpi-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:8px}
+.kpi-value{font-size:26px;font-weight:800;color:#1e293b;letter-spacing:-.5px}
+.card{background:#fff!important;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card-title{font-size:16px;font-weight:700;color:#1e293b;margin-bottom:20px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fgroup{margin-bottom:14px}
+.fgroup label{display:block;font-size:12.5px;font-weight:600;color:#475569;margin-bottom:5px}
+input,select,textarea{width:100%;font-family:inherit;font-size:14px;color:#1e293b!important;background:#f8fafc!important;border:1.5px solid #e2e8f0!important;border-radius:8px;padding:9px 12px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:#2563eb!important;background:#fff!important;box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+input::placeholder,textarea::placeholder{color:#cbd5e1}
+select option{background:#fff}
+.btn{font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 18px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;cursor:pointer;transition:all .15s}
+.btn:hover{background:#f1f5f9;color:#1e293b}
+.btn-primary{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.20)}
+.btn-primary:hover{background:#1d4ed8;border-color:#1d4ed8}
+.tbl-wrap{background:#fff!important;border:1px solid #e2e8f0;border-radius:12px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{background:#f8fafc!important;padding:11px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;border-bottom:1px solid #e2e8f0}
+tbody td{padding:13px 16px;color:#1e293b;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#f8fafc!important}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.b-green{background:#dcfce7;color:#15803d}.b-amber{background:#fef9c3;color:#a16207}.b-blue{background:#dbeafe;color:#1d4ed8}
+.act{font-family:inherit;font-size:12px;font-weight:600;padding:4px 11px;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;color:#475569;cursor:pointer;margin-right:4px;transition:all .12s}
+.act:hover{background:#e2e8f0;color:#1e293b}
+.act.del:hover{background:#fef2f2;border-color:#fca5a5;color:#dc2626}
+.amt{font-variant-numeric:tabular-nums;font-weight:600}
+.pos{color:#16a34a}.neg{color:#dc2626}.muted{color:#94a3b8;font-size:12px}
+.plat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:7px;margin-top:7px}
+.plat-item{display:flex;align-items:center;gap:8px;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:13px!important;font-weight:500!important;color:#475569!important;transition:all .12s;background:#f8fafc!important}
+.plat-item:hover{border-color:#2563eb;color:#1e293b!important;background:#eff6ff!important}
+.plat-item input[type=checkbox]{width:14px;height:14px;accent-color:#2563eb;flex-shrink:0}
+.empty{padding:48px 20px;text-align:center;color:#94a3b8;font-size:14px;font-weight:500}
+.sueldo-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:16px}
+.sueldo-kpi .kpi{margin:0}
+#modal-editar{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(4px);z-index:1000;overflow-y:auto;padding:40px 16px}
+.modal-box{background:#fff!important;border-radius:16px;box-shadow:0 16px 64px rgba(0,0,0,.18);padding:28px;max-width:580px;margin:0 auto}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.modal-hdr h2{font-size:17px;font-weight:700;color:#1e293b}
+.modal-close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border:none;border-radius:7px;font-size:16px;color:#64748b;cursor:pointer;transition:all .12s}
+.modal-close:hover{background:#fef2f2;color:#dc2626}
+#admin-modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(6px);z-index:5000;overflow-y:auto;padding:40px 16px}
+.admin-box{background:#fff!important;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);padding:28px;max-width:860px;margin:0 auto}
+.admin-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #e2e8f0}
+.admin-hdr h2{font-size:18px;font-weight:700}
+.s-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;text-transform:uppercase}
+.s-pendiente{background:#fef9c3;color:#a16207}
+.s-aprobada{background:#dcfce7;color:#15803d}
+.s-cancelada{background:#fee2e2;color:#b91c1c}
+#loading-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.35);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center}
+#loading-overlay.show{display:flex}
+.loading-box{background:#fff!important;border-radius:14px;padding:30px 44px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.12)}
+.spinner{width:34px;height:34px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .65s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-box p{font-size:13.5px;color:#64748b;font-weight:500}
+#toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:600;color:#fff;z-index:9999;opacity:0;transform:translateY(16px);transition:all .25s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.success{background:#16a34a}#toast.error{background:#dc2626}
+.chart-svg{width:100%;height:200px;display:block}
+.chart-bar{transition:opacity .15s}.chart-bar:hover{opacity:.75}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;font-weight:600}
+.chart-legend span{display:flex;align-items:center;gap:5px}
+.chart-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0}
+@media(max-width:700px){
+  .row2{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .tabs{overflow-x:auto;flex-wrap:nowrap}
+  .wrap{padding:16px 14px}
+  .topbar{padding:0 16px}
+  .auth-box{padding:28px 20px}
+  #rep-charts-top,#rep-charts-top+div{grid-template-columns:1fr!important}
+}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay"><div class="loading-box"><div class="spinner"></div><p id="loading-text">Cargando...</p></div></div>
+<div id="toast"></div>
+<!-- Hidden iframe: tricks browser into offering to save password -->
+<iframe id="pwd-save-frame" name="pwd-save-frame" style="display:none" aria-hidden="true"></iframe>
+<form id="pwd-save-form" method="post" action="about:blank" target="pwd-save-frame" style="display:none" autocomplete="on">
+  <input type="email" name="email" id="pwd-save-email" autocomplete="username">
+  <input type="password" name="password" id="pwd-save-pwd" autocomplete="current-password">
+  <button type="submit" id="pwd-save-btn"></button>
+</form>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-brand">
+      <span class="icon">🚗</span>
+      <h1>Gest<em>Car</em></h1>
+      <p>Sistema de gestión para automotoras</p>
+    </div>
+    <div class="seg-tabs">
+      <button type="button" class="seg-tab active" id="tab-login-btn">Iniciar sesión</button>
+      <button type="button" class="seg-tab" id="tab-register-btn">Registrarse</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="form-login" class="auth-panel active">
+      <div class="quick-banner" id="quick-banner">
+        <p>👋 Bienvenido/a de vuelta, <strong id="saved-nombre-text"></strong></p>
+        <button type="button" id="btn-quick-login" id="btn-quick-login">⚡ Entrar directo (sesión guardada)</button>
+      </div>
+      <div class="divider-or" id="divider-or">o ingresa con otra cuenta</div>
+      <div id="login-error" class="msg-err"></div>
+      <form id="login-form" action="#" onsubmit="doLogin();return false;" autocomplete="on" style="margin:0">
+        <div class="field"><label>Correo electrónico</label><input type="email" id="login-user" name="email" placeholder="tu@correo.com" autocomplete="username email"></div>
+        <div class="field"><label>Contraseña</label><input type="password" id="login-pass" name="password" placeholder="••••••••" autocomplete="current-password"></div>
+        <div class="remember-row"><input type="checkbox" id="recordarme" checked><label for="recordarme">Recordar mi sesión en este dispositivo</label></div>
+        <button type="submit" class="auth-submit" id="btn-login">Ingresar →</button>
+        <div style="text-align:center;margin-top:12px">
+          <button type="button" id="btn-forgot" style="font-family:inherit;font-size:12.5px;color:#64748b;background:none;border:none;cursor:pointer;text-decoration:underline;">¿Olvidaste tu contraseña?</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- FORGOT PASSWORD PANEL -->
+    <div id="form-forgot" class="auth-panel">
+      <div id="forgot-msg" class="msg-ok" style="display:none"></div>
+      <div id="forgot-err" class="msg-err" style="display:none"></div>
+      <div style="margin-bottom:16px">
+        <button type="button" id="btn-back-login" style="font-family:inherit;font-size:13px;color:#2563eb;background:none;border:none;cursor:pointer;">← Volver al login</button>
+      </div>
+      <p style="font-size:13.5px;color:#475569;font-weight:500;margin-bottom:18px">Ingresa tu correo y te generaremos un código de recuperación que deberás enviar a tu administrador o dueño de la automotora.</p>
+      <div class="field"><label>Correo electrónico</label><input type="email" id="forgot-email" placeholder="tu@correo.com"></div>
+      <button type="button" class="auth-submit" id="btn-forgot-send">Generar código de recuperación</button>
+
+      <div id="forgot-result" style="display:none;margin-top:18px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px">
+        <p style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:8px">✅ Código generado</p>
+        <p style="font-size:12.5px;color:#475569;margin-bottom:10px">Envía este código a tu administrador para que restablezca tu contraseña:</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <code id="reset-code-display" style="background:#fff;border:1px solid #e2e8f0;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:700;letter-spacing:2px;flex:1"></code>
+          <button type="button" id="btn-copy-code" class="btn" style="font-size:12px;padding:7px 12px">Copiar</button>
+        </div>
+        <div id="wa-admin-link" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="form-register" class="auth-panel">
+      <div id="reg-error" class="msg-err"></div>
+      <div id="reg-ok" class="msg-ok"></div>
+      <form id="register-form" action="#" onsubmit="doRegister();return false;" autocomplete="on" style="margin:0">
+        <div class="field"><label>Nombre de la automotora</label><input type="text" id="reg-nombre" name="nombre" placeholder="Ej: Automotora del Sur" autocomplete="organization"></div>
+        <div class="field"><label>Correo electrónico</label><input type="email" id="reg-user" name="email" placeholder="tu@correo.com" autocomplete="username email"></div>
+        <div class="field"><label>Teléfono / WhatsApp</label><input type="tel" id="reg-tel" name="tel" placeholder="Ej: +56 9 1234 5678" autocomplete="tel"></div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="reg-pass" name="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          <div class="pwd-strength"><div class="pwd-bar" id="pwd-bar"></div></div>
+          <div class="pwd-hint" id="pwd-hint"></div>
+        </div>
+        <div class="field"><label>Repetir contraseña</label><input type="password" id="reg-pass2" name="password2" placeholder="Repite la contraseña" autocomplete="new-password"></div>
+        <button type="submit" class="auth-submit" id="btn-register">Crear cuenta →</button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- ADMIN BUTTON: outside auth-box, always visible -->
+  <div style="text-align:center;margin-top:16px;">
+    <button type="button" id="btn-open-admin" style="font-family:inherit;font-size:12px;font-weight:600;color:#94a3b8;background:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.9);border-radius:8px;padding:7px 18px;cursor:pointer;">⚙ Panel de Administrador</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <span class="topbar-logo">🚗 Gest<em>Car</em></span>
+    <div class="topbar-right">
+      <span class="topbar-name" id="topbar-nombre"></span>
+      <button type="button" class="btn-admin-top" id="btn-backup-export" title="Descargar backup JSON">💾 Backup</button>
+      <button type="button" class="btn-admin-top" id="btn-backup-import" title="Restaurar desde backup JSON">📂 Restaurar</button>
+      <button type="button" class="btn-admin-top" id="btn-admin-from-app">⚙ Admin</button>
+      <button type="button" class="btn-logout" id="btn-logout">Cerrar sesión</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="tabs">
+      <button type="button" class="tab active" data-tab="dashboard">Dashboard</button>
+      <button type="button" class="tab" data-tab="autos">Inventario</button>
+      <button type="button" class="tab" data-tab="vendidos">Vendidos</button>
+      <button type="button" class="tab" data-tab="ventas">Ventas</button>
+      <button type="button" class="tab" data-tab="plataformas">Plataformas</button>
+      <button type="button" class="tab" data-tab="rentabilidad">Rentabilidad</button>
+      <button type="button" class="tab" data-tab="sueldos">Sueldos</button>
+      <button type="button" class="tab" data-tab="reportes">📊 Reportes</button>
+      <button type="button" class="tab" data-tab="vendedores" id="tab-vendedores" style="display:none">👥 Vendedores</button>
+      <button type="button" class="tab tab-export" id="btn-export">⬇ Excel</button>
+    </div>
+
+    <div id="dashboard" class="section active">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Total Autos</div><div class="kpi-value" id="total-autos">0</div></div>
+        <div class="kpi"><div class="kpi-label">Propios</div><div class="kpi-value" id="total-propios">0</div></div>
+        <div class="kpi"><div class="kpi-label">Consignados</div><div class="kpi-value" id="total-consignados">0</div></div>
+        <div class="kpi"><div class="kpi-label">Vendidos</div><div class="kpi-value" id="total-vendidos">0</div></div>
+        <div class="kpi"><div class="kpi-label">Inversión Total</div><div class="kpi-value" id="inversion-total">$0</div></div>
+        <div class="kpi"><div class="kpi-label">Ventas Totales</div><div class="kpi-value" id="ventas-total">$0</div></div>
+        <div class="kpi"><div class="kpi-label">Ganancia Neta</div><div class="kpi-value" id="ganancia-neta">$0</div></div>
+        <div class="kpi"><div class="kpi-label">Margen</div><div class="kpi-value" id="margen-porcentaje">0%</div></div>
+      </div>
+    </div>
+
+    <div id="autos" class="section">
+      <div class="card">
+        <div class="card-title">Agregar Nuevo Auto</div>
+        <div class="row2">
+          <div class="fgroup"><label>Marca</label><input type="text" id="marca" placeholder="Toyota, Ford..."></div>
+          <div class="fgroup"><label>Modelo</label><input type="text" id="modelo" placeholder="Corolla, Focus..."></div>
+        </div>
+        <div class="row2">
+          <div class="fgroup"><label>Año</label><input type="number" id="ano" placeholder="2023"></div>
+          <div class="fgroup"><label>Tipo</label><select id="tipo-auto"><option value="propio">Propio</option><option value="consignado">Consignado</option></select></div>
+        </div>
+        <div class="row2">
+          <div class="fgroup"><label id="label-precio">Precio de Compra</label><input type="number" id="precio-compra" placeholder="Ej: 15000"></div>
+          <div class="fgroup"><label>Gastos Extras ($)</label><input type="number" id="gastos-extras" placeholder="Lavado, neumáticos..." value="0"></div>
+        </div>
+        <div class="row2">
+          <div class="fgroup" id="grupo-comision" style="display:none"><label>Mi Comisión (%)</label><input type="number" id="comision-consignado" placeholder="Ej: 5" value="0"></div>
+          <div class="fgroup"><label>Estado</label><select id="estado-auto"><option value="disponible">Disponible</option><option value="reservado">Reservado</option><option value="vendido">Vendido</option></select></div>
+        </div>
+        <div class="fgroup"><label>Observaciones</label><textarea id="observaciones" placeholder="Detalles del vehículo" rows="2"></textarea></div>
+        <div class="fgroup">
+          <label>Publicado en</label>
+          <div class="plat-grid">
+            <label class="plat-item"><input type="checkbox" id="publ-directa" value="directa"> Venta Directa</label>
+            <label class="plat-item"><input type="checkbox" id="publ-mercadolibre" value="mercadolibre"> Mercado Libre</label>
+            <label class="plat-item"><input type="checkbox" id="publ-olx" value="olx"> OLX</label>
+            <label class="plat-item"><input type="checkbox" id="publ-portalautomotriz" value="portalautomotriz"> Portal Automotriz</label>
+            <label class="plat-item"><input type="checkbox" id="publ-chileautos" value="chileautos"> ChileAutos</label>
+            <label class="plat-item"><input type="checkbox" id="publ-facebook" value="facebook"> Facebook Marketplace</label>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-agregar-auto">+ Agregar Auto</button>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>Marca</th><th>Modelo</th><th>Año</th><th>Tipo</th><th>Estado</th><th>Inversión</th><th>Publicado en</th><th>Acciones</th></tr></thead><tbody id="tabla-autos"></tbody></table></div>
+    </div>
+
+    <div id="vendidos" class="section">
+      <div class="card"><div class="card-title">Historial de Autos Vendidos</div><p style="color:#94a3b8;font-size:13px;margin-top:-14px">Registro de todos los autos vendidos.</p></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Marca</th><th>Modelo</th><th>Año</th><th>Tipo</th><th>Inversión</th><th>Publicado en</th><th>Acciones</th></tr></thead><tbody id="tabla-vendidos"></tbody></table></div>
+    </div>
+
+    <div id="ventas" class="section">
+      <div class="card">
+        <div class="card-title">Registrar Venta</div>
+        <div class="row2">
+          <div class="fgroup"><label>Auto a Vender</label><select id="auto-venta"><option value="">-- Seleccionar --</option></select></div>
+          <div class="fgroup"><label>Precio de Venta</label><input type="number" id="precio-venta" placeholder="Ej: 18000"></div>
+        </div>
+        <div class="row2">
+          <div class="fgroup"><label>Plataforma</label>
+            <select id="plataforma-venta">
+              <option value="">-- Seleccionar --</option>
+              <option value="directa">Venta Directa</option>
+              <option value="mercadolibre">Mercado Libre</option>
+              <option value="olx">OLX</option>
+              <option value="portalautomotriz">Portal Automotriz</option>
+              <option value="chileautos">ChileAutos</option>
+              <option value="facebook">Facebook Marketplace</option>
+              <option value="otra">Otra</option>
+            </select>
+          </div>
+          <div class="fgroup"><label>Comisión (%)</label><input type="number" id="comision-porcentaje" placeholder="0" value="0"></div>
+        </div>
+        <div class="row2">
+          <div class="fgroup"><label>Fecha de Venta</label><input type="date" id="fecha-venta"></div>
+          <div class="fgroup"><label>Vendedor / Comisionista</label><input type="text" id="vendedor" placeholder="Nombre del vendedor"></div>
+        </div>
+        <div class="fgroup"><label>Notas</label><textarea id="notas-venta" rows="2" placeholder="Notas adicionales"></textarea></div>
+        <button type="button" class="btn btn-primary" id="btn-registrar-venta">Registrar Venta</button>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>Auto</th><th>Precio Compra</th><th>Precio Venta</th><th>Ganancia</th><th>Plataforma</th><th>Comisión</th><th>Fecha</th><th>Vendedor</th></tr></thead><tbody id="tabla-ventas"></tbody></table></div>
+    </div>
+
+    <div id="plataformas" class="section"><div class="card"><div class="card-title">Análisis por Plataforma</div><div id="resumen-plataformas"></div></div></div>
+    <div id="rentabilidad" class="section"><div class="card"><div class="card-title">Análisis de Rentabilidad</div><div id="resumen-rentabilidad"></div></div></div>
+
+    <div id="sueldos" class="section">
+      <div class="card">
+        <div class="card-title">Gestión de Sueldos</div>
+        <div style="border:1.5px solid #e2e8f0;border-radius:10px;padding:18px;margin-bottom:20px">
+          <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:14px">➕ Agregar Empleado</div>
+          <div class="row2">
+            <div class="fgroup"><label>Nombre</label><input type="text" id="emp-nombre" placeholder="Ej: Juan Pérez"></div>
+            <div class="fgroup"><label>Cargo</label><input type="text" id="emp-cargo" placeholder="Ej: Vendedor..."></div>
+          </div>
+          <div class="row2">
+            <div class="fgroup"><label>Tipo de Sueldo</label>
+              <select id="emp-tipo">
+                <option value="fijo">Sueldo Fijo</option>
+                <option value="fijo_comision">Sueldo Fijo + Comisión</option>
+                <option value="comision">Solo Comisión</option>
+              </select>
+            </div>
+            <div class="fgroup"><label>Sueldo Base ($)</label><input type="number" id="emp-base" placeholder="Ej: 800000" value="0"></div>
+          </div>
+          <div class="row2" id="emp-com-row" style="display:none">
+            <div class="fgroup"><label>Comisión sobre ventas (%)</label><input type="number" id="emp-comision-pct" placeholder="Ej: 2" value="0" step="0.1"></div>
+            <div class="fgroup"><label>Aplicar sobre</label><select id="emp-com-base"><option value="venta">Precio de venta</option><option value="ganancia">Ganancia neta</option></select></div>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-agregar-emp">+ Agregar Empleado</button>
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>Empleado</th><th>Cargo</th><th>Tipo</th><th>Base</th><th>Com%</th><th>Comisión Mes</th><th>Total Mes</th><th>Acciones</th></tr></thead><tbody id="tabla-empleados"></tbody></table></div>
+        <div id="resumen-sueldos" style="margin-top:20px"></div>
+      </div>
+    </div>
+
+    <div id="vendedores" class="section">
+      <div class="card">
+        <div class="card-title">👥 Gestión de Vendedores</div>
+        <p style="color:#64748b;font-size:13px;margin-top:-12px;margin-bottom:20px">Crea accesos para tus vendedores. Solo podrán ver Inventario, Vendidos y Plataformas.</p>
+        <div style="border:1.5px solid #e2e8f0;border-radius:10px;padding:18px;margin-bottom:20px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px">➕ Agregar Vendedor</div>
+          <div class="row2">
+            <div class="fgroup"><label>Nombre completo</label><input type="text" id="vend-nombre" placeholder="Ej: Juan Pérez"></div>
+            <div class="fgroup"><label>Correo electrónico</label><input type="email" id="vend-email" placeholder="juan@correo.com"></div>
+          </div>
+          <div class="row2">
+            <div class="fgroup"><label>Teléfono / WhatsApp</label><input type="tel" id="vend-tel" placeholder="+56 9 1234 5678"></div>
+            <div class="fgroup"><label>Contraseña temporal</label><input type="text" id="vend-pass" placeholder="Mín. 6 caracteres"></div>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-agregar-vendedor">+ Crear acceso vendedor</button>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr></thead>
+          <tbody id="tabla-vendedores"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div id="reportes" class="section">
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="font-size:16px;font-weight:700;color:#1e293b">Reportes Mensuales</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+            <label style="font-size:13px;font-weight:600;color:#475569">Año:</label>
+            <select id="reporte-anio" style="width:auto;padding:6px 10px;font-size:13px"></select>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-grid" id="rep-kpis" style="margin-bottom:16px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="rep-charts-top">
+        <div class="card"><div class="card-title">Ingresos vs Costos por Mes</div><div id="chart-ingresos"></div></div>
+        <div class="card"><div class="card-title">Ganancia Neta por Mes</div><div id="chart-ganancia"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card"><div class="card-title">Autos Vendidos por Mes</div><div id="chart-unidades"></div></div>
+        <div class="card"><div class="card-title">Margen % por Mes</div><div id="chart-margen"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Detalle Mensual</div>
+        <div class="tbl-wrap"><table><thead><tr><th>Mes</th><th>Vendidos</th><th>Ingresos</th><th>Costo Compras</th><th>Gastos Extras</th><th>Comisiones</th><th>Ganancia</th><th>Margen%</th><th>Sueldos</th><th>Utilidad Neta</th></tr></thead><tbody id="tabla-reporte-mensual"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR AUTO -->
+<div id="modal-editar">
+  <div class="modal-box">
+    <div class="modal-hdr"><h2>Editar Auto</h2><button type="button" class="modal-close" id="btn-modal-close">✕</button></div>
+    <div class="row2">
+      <div class="fgroup"><label>Marca</label><input type="text" id="edit-marca"></div>
+      <div class="fgroup"><label>Modelo</label><input type="text" id="edit-modelo"></div>
+    </div>
+    <div class="row2">
+      <div class="fgroup"><label>Año</label><input type="number" id="edit-ano"></div>
+      <div class="fgroup"><label>Tipo</label><select id="edit-tipo-auto"><option value="propio">Propio</option><option value="consignado">Consignado</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="fgroup"><label id="edit-label-precio">Precio de Compra</label><input type="number" id="edit-precio-compra"></div>
+      <div class="fgroup"><label>Gastos Extras ($)</label><input type="number" id="edit-gastos-extras" value="0"></div>
+    </div>
+    <div class="row2">
+      <div class="fgroup" id="edit-grupo-comision" style="display:none"><label>Mi Comisión (%)</label><input type="number" id="edit-comision-consignado" value="0"></div>
+      <div class="fgroup"><label>Estado</label><select id="edit-estado-auto"><option value="disponible">Disponible</option><option value="reservado">Reservado</option><option value="vendido">Vendido</option></select></div>
+    </div>
+    <div class="fgroup"><label>Observaciones</label><textarea id="edit-observaciones" rows="2"></textarea></div>
+    <div class="fgroup">
+      <label>Publicado en</label>
+      <div class="plat-grid">
+        <label class="plat-item"><input type="checkbox" id="edit-publ-directa" value="directa"> Venta Directa</label>
+        <label class="plat-item"><input type="checkbox" id="edit-publ-mercadolibre" value="mercadolibre"> Mercado Libre</label>
+        <label class="plat-item"><input type="checkbox" id="edit-publ-olx" value="olx"> OLX</label>
+        <label class="plat-item"><input type="checkbox" id="edit-publ-portalautomotriz" value="portalautomotriz"> Portal Automotriz</label>
+        <label class="plat-item"><input type="checkbox" id="edit-publ-chileautos" value="chileautos"> ChileAutos</label>
+        <label class="plat-item"><input type="checkbox" id="edit-publ-facebook" value="facebook"> Facebook Marketplace</label>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button type="button" class="btn btn-primary" id="btn-guardar-edicion" style="flex:1">Guardar Cambios</button>
+      <button type="button" class="btn" id="btn-cancelar-edicion" style="flex:1">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div id="admin-modal">
+  <div class="admin-box">
+    <div class="admin-hdr">
+      <h2>⚙ Panel de Administrador</h2>
+      <button type="button" class="modal-close" id="btn-close-admin">✕</button>
+    </div>
+    <div id="admin-auth-step">
+      <p style="font-size:14px;color:#475569;margin-bottom:16px">Ingresa la contraseña de administrador para continuar.</p>
+      <div id="admin-err" class="msg-err"></div>
+      <div class="fgroup" style="max-width:320px">
+        <label>Contraseña de administrador</label>
+        <input type="password" id="admin-pass" placeholder="••••••••">
+      </div>
+      <button type="button" class="btn btn-primary" id="btn-admin-ingresar">Acceder al panel</button>
+    </div>
+    <div id="admin-panel-step" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <p style="font-size:13px;color:#64748b;font-weight:500">Todas las cuentas registradas en GestCar</p>
+        <div style="display:flex;gap:8px">
+        <button type="button" class="btn" id="btn-admin-refresh" style="font-size:12px;padding:6px 12px">↻ Actualizar</button>
+        <button type="button" class="btn btn-primary" id="btn-admin-export-csv" style="font-size:12px;padding:6px 12px">⬇ Exportar CSV</button>
+      </div>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>Automotora</th><th>Correo</th><th>WhatsApp</th><th>Estado</th><th>Fecha Registro</th><th>Notas Admin</th><th>Acciones</th></tr></thead><tbody id="admin-tabla"></tbody></table>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9">
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px">🔑 Restablecer contraseña de un usuario</div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+          <div class="fgroup" style="margin:0;flex:1;min-width:160px"><label>Correo del usuario</label><input type="email" id="admin-reset-email" placeholder="usuario@correo.com" style="font-size:13px;padding:7px 10px"></div>
+          <div class="fgroup" style="margin:0;flex:1;min-width:130px"><label>Código de recuperación</label><input type="text" id="admin-reset-code" placeholder="ABC123" style="font-size:13px;padding:7px 10px;text-transform:uppercase"></div>
+          <div class="fgroup" style="margin:0;flex:1;min-width:150px"><label>Nueva contraseña</label><input type="password" id="admin-reset-newpwd" placeholder="Mín. 6 caracteres" style="font-size:13px;padding:7px 10px"></div>
+          <button type="button" class="btn btn-primary" id="btn-admin-reset-pwd" style="font-size:12px;padding:8px 14px;margin-bottom:1px">Restablecer</button>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px">🔑 Cambiar contraseña de administrador</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="password" id="admin-new-pwd1" placeholder="Nueva contraseña" style="width:180px;font-size:13px;padding:7px 10px">
+          <input type="password" id="admin-new-pwd2" placeholder="Repetir contraseña" style="width:180px;font-size:13px;padding:7px 10px">
+          <button type="button" class="btn btn-primary" id="btn-admin-change-pwd" style="font-size:12px;padding:7px 14px">Cambiar</button>
+        </div>
+        <p style="font-size:11.5px;color:#94a3b8;margin-top:8px">Contraseña actual guardada en este navegador. Default: <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">GestCar2024!</code></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ STORAGE ══════════════════════════════════════════════════
+const S={
+  get(k){try{const v=localStorage.getItem('gc__'+k);return v?JSON.parse(v):null;}catch(e){return null;}},
+  set(k,v){try{localStorage.setItem('gc__'+k,JSON.stringify(v));}catch(e){}},
+  del(k){try{localStorage.removeItem('gc__'+k);}catch(e){}}
+};
+
+// ══ HELPERS ══════════════════════════════════════════════════
+function $(i){return document.getElementById(i);}
+function val(i){return $(i).value;}
+let _lt;
+function loading(m){$('loading-text').textContent=m||'Cargando...';$('loading-overlay').classList.add('show');clearTimeout(_lt);_lt=setTimeout(stopLoading,8000);}
+function stopLoading(){clearTimeout(_lt);$('loading-overlay').classList.remove('show');}
+let _tt;
+function toast(m,t){const e=$('toast');e.textContent=m;e.className='show '+(t||'success');clearTimeout(_tt);_tt=setTimeout(()=>e.className='',3200);}
+
+// ══ CRYPTO ═══════════════════════════════════════════════════
+async function hashPwd(pwd,ukey){
+  const enc=new TextEncoder();
+  const key=await crypto.subtle.importKey('raw',enc.encode(pwd),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode('gestcar_'+ukey),iterations:200000,hash:'SHA-256'},key,256);
+  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function legacyHash(p){let h=0;for(let i=0;i<p.length;i++){h=((h<<5)-h)+p.charCodeAt(i);h|=0;}return 'h'+Math.abs(h).toString(36)+p.length;}
+function checkPwdStrength(p){
+  const bar=$('pwd-bar'),hint=$('pwd-hint');if(!bar)return;
+  let s=0;if(p.length>=8)s++;if(p.length>=12)s++;if(/[A-Z]/.test(p))s++;if(/[0-9]/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;
+  const L=[{w:'0%',c:'#e2e8f0',t:''},{w:'25%',c:'#ef4444',t:'Muy débil'},{w:'50%',c:'#f97316',t:'Débil'},{w:'70%',c:'#eab308',t:'Aceptable'},{w:'85%',c:'#22c55e',t:'Buena'},{w:'100%',c:'#16a34a',t:'Muy segura ✓'}];
+  const lv=p.length===0?0:Math.max(1,s);bar.style.width=L[lv].w;bar.style.background=L[lv].c;hint.textContent=L[lv].t;hint.style.color=L[lv].c;
+}
+
+// ══ STATE ════════════════════════════════════════════════════
+let me=null,autos=[],ventas=[],empleados=[];
+const uK=s=>'u:'+me.ukey+':'+s;
+const saveA=()=>{S.set(uK('autos'),autos);localStorage.setItem('gc_u:'+me.ukey+':autos',JSON.stringify(autos));autoBackup();};
+const saveV=()=>{S.set(uK('ventas'),ventas);localStorage.setItem('gc_u:'+me.ukey+':ventas',JSON.stringify(ventas));autoBackup();};
+const saveE=()=>{S.set(uK('empleados'),empleados);localStorage.setItem('gc_u:'+me.ukey+':empleados',JSON.stringify(empleados));autoBackup();};
+
+// ══ AUTH ═════════════════════════════════════════════════════
+function authTab(tab){
+  document.querySelectorAll('.seg-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.auth-panel').forEach(p=>p.classList.remove('active'));
+  $('tab-'+tab+'-btn').classList.add('active');
+  $('form-'+tab).classList.add('active');
+}
+
+async function doRegister(){
+  const nombre=val('reg-nombre').trim(),email=val('reg-user').trim().toLowerCase();
+  const pass=val('reg-pass'),pass2=val('reg-pass2');
+  const err=$('reg-error'),ok=$('reg-ok');
+  err.style.display=ok.style.display='none';
+  if(!nombre||!email||!pass||!pass2){err.textContent='Completa todos los campos.';err.style.display='block';return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Correo inválido.';err.style.display='block';return;}
+  if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';err.style.display='block';return;}
+  if(pass!==pass2){err.textContent='Las contraseñas no coinciden.';err.style.display='block';return;}
+  const ukey=email.replace(/[@.]/g,'-');
+  loading('Creando cuenta...');
+  if(S.get('acc:'+ukey)){stopLoading();err.textContent='Ese correo ya tiene una cuenta. Ve a Iniciar sesión.';err.style.display='block';return;}
+  const pwd=await hashPwd(pass,ukey);
+  const tel=val('reg-tel').trim();
+  S.set('acc:'+ukey,{email,ukey,nombre,tel,pwd,v:2,status:'pendiente',fechaReg:new Date().toLocaleDateString('es-CL')});
+  stopLoading();
+  ok.innerHTML='✅ <strong>¡Cuenta creada!</strong> El administrador revisará tu solicitud y te dará acceso pronto.';
+  ok.style.display='block';
+  // WhatsApp Web link to admin
+  if(ADMIN_WA_NUMBER){
+    const msg=encodeURIComponent('Hola, acabo de registrarme en GestCar.\nAutomotora: '+nombre+'\nCorreo: '+email+(tel?'\nTeléfono: '+tel:'')+'\nQuedo esperando la aprobación. ¡Gracias!');
+    const waUrl='https://wa.me/'+ADMIN_WA_NUMBER.replace(/[^0-9]/g,'')+'?text='+msg;
+    ok.innerHTML+='<br><br><a href="'+waUrl+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:#25d366;color:#fff;font-weight:700;font-size:13px;padding:9px 16px;border-radius:8px;text-decoration:none;margin-top:4px;">📱 Avisar al administrador por WhatsApp</a>';
+  }
+  ['reg-nombre','reg-user','reg-tel','reg-pass','reg-pass2'].forEach(id=>$(id).value='');
+}
+
+async function doLogin(){
+  const email=val('login-user').trim().toLowerCase(),pass=val('login-pass');
+  const err=$('login-error');err.style.display='none';
+  if(!email||!pass){err.textContent='Ingresa correo y contraseña.';err.style.display='block';return;}
+  const ukey=email.replace(/[@.]/g,'-');
+  loading('Verificando...');
+  const acc=S.get('acc:'+ukey);
+  if(!acc){stopLoading();err.textContent='No existe una cuenta con ese correo.';err.style.display='block';return;}
+  if(acc.status==='pendiente'){stopLoading();err.textContent='Tu cuenta está pendiente de aprobación por el administrador.';err.style.display='block';return;}
+  if(acc.status==='cancelada'){stopLoading();err.textContent='Tu cuenta fue cancelada. Contacta al administrador.';err.style.display='block';return;}
+  let valid=false;
+  const h=await hashPwd(pass,ukey);
+  if(acc.v===2&&h===acc.pwd){valid=true;}
+  else if(acc.v===2){
+    // Try old salt migration
+    const enc=new TextEncoder();
+    const key2=await crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveBits']);
+    const bits2=await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode('gc_'+ukey),iterations:200000,hash:'SHA-256'},key2,256);
+    const oldH=Array.from(new Uint8Array(bits2)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    if(oldH===acc.pwd){valid=true;acc.pwd=h;S.set('acc:'+ukey,acc);}
+  } else {
+    if(legacyHash(pass)===acc.pwd){valid=true;acc.pwd=h;acc.v=2;S.set('acc:'+ukey,acc);}
+  }
+  if(!valid){stopLoading();err.textContent='Contraseña incorrecta.';err.style.display='block';return;}
+  me={email:acc.email,ukey:acc.ukey,nombre:acc.nombre,role:acc.role||'owner',ownerUkey:acc.ownerUkey||null};
+  const remember=$('recordarme').checked;
+  const sesJson=JSON.stringify(me);
+  if(remember){
+    localStorage.setItem('gc_ses',sesJson);
+    // Write extra copy so future refactors still find it
+    localStorage.setItem('gc__ses',sesJson);
+  } else {
+    sessionStorage.setItem('gc_ses',sesJson);
+    localStorage.removeItem('gc_ses');
+    localStorage.removeItem('gc__ses');
+  }
+  localStorage.setItem('gc_saved_email',acc.email);
+  localStorage.setItem('gc_saved_nombre',acc.nombre);
+  // Signal browser to save password
+  try{
+    $('pwd-save-email').value=email;
+    $('pwd-save-pwd').value=pass;
+    $('pwd-save-btn').click();
+  }catch(e){}
+  loading('Cargando datos...');
+  const dataUk=(me.role==='seller'&&me.ownerUkey)?me.ownerUkey:me.ukey;
+  const dK=s=>'u:'+dataUk+':'+s;
+  autos=S.get(dK('autos'))||[];
+  ventas=S.get(dK('ventas'))||[];
+  empleados=S.get(dK('empleados'))||[];
+  stopLoading();
+  enterApp();
+}
+
+function quickLogin(){
+  const s=localStorage.getItem('gc_ses');
+  if(s){
+    // Full remembered session — enter directly
+    try{
+      me=JSON.parse(s);
+      autos=S.get(uK('autos'))||[];
+      ventas=S.get(uK('ventas'))||[];
+      empleados=S.get(uK('empleados'))||[];
+      enterApp();
+      restaurarDesdeBackup();
+      return;
+    }catch(e){localStorage.removeItem('gc_ses');}
+  }
+  // No full session — email is already filled, just focus password
+  $('quick-banner').style.display='none';
+  $('divider-or').style.display='none';
+  $('login-pass').focus();
+  toast('Ingresa tu contraseña para continuar');
+}
+
+function doLogout(){
+  me=null;autos=[];ventas=[];empleados=[];
+  sessionStorage.removeItem('gc_ses');localStorage.removeItem('gc_ses');
+  $('app-screen').style.display='none';
+  $('auth-screen').style.display='flex';
+  toast('Sesión cerrada');
+}
+
+function enterApp(){
+  $('auth-screen').style.display='none';
+  $('app-screen').style.display='block';
+  $('topbar-nombre').textContent=me.nombre+(me.role==='seller'?' (Vendedor)':'');
+  $('fecha-venta').value=new Date().toISOString().slice(0,10);
+  refreshAll();
+  applyRole();
+}
+
+// ══ ADMIN ════════════════════════════════════════════════════
+const ADMIN_PWD='GestCar2024!';
+// Pon aquí tu número de WhatsApp con código de país, sin espacios ni símbolos
+// Ejemplo Chile: '56912345678'  |  Deja '' para deshabilitar el botón de WhatsApp
+const ADMIN_WA_NUMBER='';
+
+function openAdmin(){
+  $('admin-auth-step').style.display='block';
+  $('admin-panel-step').style.display='none';
+  $('admin-err').style.display='none';
+  $('admin-pass').value='';
+  $('admin-modal').style.display='block';
+  setTimeout(()=>$('admin-pass').focus(),150);
+}
+function closeAdmin(){$('admin-modal').style.display='none';}
+
+function adminLogin(){
+  if(val('admin-pass')!==getAdminPwd()){$('admin-err').textContent='Contraseña incorrecta.';$('admin-err').style.display='block';return;}
+  $('admin-auth-step').style.display='none';
+  $('admin-panel-step').style.display='block';
+  loadAdminCuentas();
+}
+
+function loadAdminCuentas(){
+  const tb=$('admin-tabla'),cuentas=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('gc__acc:')){try{const a=JSON.parse(localStorage.getItem(k));if(a&&a.email)cuentas.push(a);}catch(e){}}
+  }
+  if(!cuentas.length){tb.innerHTML='<tr><td colspan="7" class="empty">No hay cuentas registradas aún</td></tr>';return;}
+  const ord={pendiente:0,aprobada:1,cancelada:2};
+  cuentas.sort((a,b)=>(ord[a.status||'aprobada']||0)-(ord[b.status||'aprobada']||0));
+  tb.innerHTML=cuentas.map(a=>{
+    const st=a.status||'aprobada',pill=`<span class="s-pill s-${st}">${st}</span>`;
+    // WhatsApp link
+    const waNum=(a.tel||'').replace(/[^0-9]/g,'');
+    const waLink=waNum?`<a href="https://wa.me/${waNum}" target="_blank" style="color:#16a34a;font-weight:600;font-size:12px;text-decoration:none;">📱 ${a.tel}</a>`:'<span class="muted">—</span>';
+    // Notes cell (inline editable)
+    const notes=a.adminNotes||'';
+    const noteCell=`<input type="text" value="${notes.replace(/"/g,'&quot;')}" placeholder="Agregar nota..." style="width:140px;font-size:12px;padding:4px 7px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;color:#475569;" data-action="admin-nota" data-ukey="${a.ukey}">`;
+    let acts='';
+    if(st==='pendiente')acts=`<button type="button" class="act" data-action="admin-aprobar" data-ukey="${a.ukey}">✓ Aprobar</button><button type="button" class="act del" data-action="admin-cancelar" data-ukey="${a.ukey}">✗ Cancelar</button>`;
+    else if(st==='aprobada')acts=`<button type="button" class="act del" data-action="admin-cancelar" data-ukey="${a.ukey}">Cancelar</button>`;
+    else acts=`<button type="button" class="act" data-action="admin-aprobar" data-ukey="${a.ukey}">Reactivar</button>`;
+    return`<tr><td><strong>${a.nombre||'—'}</strong></td><td style="font-size:12px">${a.email}</td><td>${waLink}</td><td>${pill}</td><td>${a.fechaReg||'—'}</td><td>${noteCell}</td><td style="white-space:nowrap">${acts}</td></tr>`;
+  }).join('');
+}
+
+function adminAccion(ukey,accion){
+  const acc=S.get('acc:'+ukey);if(!acc)return;
+  acc.status=accion==='aprobar'?'aprobada':'cancelada';
+  S.set('acc:'+ukey,acc);
+  // If approving and WhatsApp number exists, open WA to notify user
+  if(accion==='aprobar'&&acc.tel){
+    const waNum=acc.tel.replace(/[^0-9]/g,'');
+    const msg=encodeURIComponent('Hola '+acc.nombre+', tu cuenta en GestCar ha sido aprobada. Ya puedes ingresar en tu sitio. ¡Bienvenido/a! 🚗');
+    window.open('https://wa.me/'+waNum+'?text='+msg,'_blank');
+  }
+  toast(accion==='aprobar'?'Cuenta aprobada ✓':'Cuenta cancelada');
+  loadAdminCuentas();
+}
+
+function adminGuardarNota(ukey,nota){
+  const acc=S.get('acc:'+ukey);if(!acc)return;
+  acc.adminNotes=nota;
+  S.set('acc:'+ukey,acc);
+}
+
+function exportarUsuariosCSV(){
+  const cuentas=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('gc__acc:')){try{const a=JSON.parse(localStorage.getItem(k));if(a&&a.email)cuentas.push(a);}catch(e){}}
+  }
+  if(!cuentas.length){toast('No hay cuentas para exportar','error');return;}
+  const rows=[['Automotora','Correo','Teléfono/WhatsApp','Estado','Fecha Registro','Notas Admin']];
+  cuentas.forEach(a=>rows.push([a.nombre||'',a.email,a.tel||'',a.status||'aprobada',a.fechaReg||'',a.adminNotes||'']));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const link=document.createElement('a');link.href=URL.createObjectURL(blob);
+  link.download='GestCar_usuarios_'+new Date().toLocaleDateString('es-CL').replace(/\//g,'-')+'.csv';
+  link.click();URL.revokeObjectURL(link.href);
+  toast('CSV exportado ✓');
+}
+
+// ══ TABS ═════════════════════════════════════════════════════
+function switchTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab[data-tab]').forEach(b=>b.classList.remove('active'));
+  $(id).classList.add('active');
+  document.querySelector('.tab[data-tab="'+id+'"]')?.classList.add('active');
+  if(id==='vendidos')renderVendidos();
+  if(id==='ventas')fillSelect();
+  if(id==='plataformas')renderPlataformas();
+  if(id==='rentabilidad')renderRentabilidad();
+  if(id==='sueldos')renderSueldos();
+  if(id==='reportes')renderReportes();
+  renderDashboard();
+}
+function refreshAll(){renderAutos();renderVendidos();renderVentas();renderDashboard();}
+
+// ══ APP HELPERS ═══════════════════════════════════════════════
+const PLAT={directa:'Venta Directa',mercadolibre:'Mercado Libre',olx:'OLX',portalautomotriz:'Portal Automotriz',chileautos:'ChileAutos',facebook:'Facebook'};
+const platBadges=list=>!list?.length?'<span class="muted">Sin publicar</span>':list.map(p=>`<span class="badge b-blue" style="margin:2px">${PLAT[p]||p}</span>`).join('');
+const fmtM=n=>'$'+Math.round(n).toLocaleString('es-CL');
+function cambiarTipoAuto(){const c=$('tipo-auto').value==='consignado';$('label-precio').textContent=c?'Precio de Venta Esperado':'Precio de Compra';$('precio-compra').placeholder=c?'Ej: 20000':'Ej: 15000';$('grupo-comision').style.display=c?'block':'none';}
+function editTipoChange(){const c=$('edit-tipo-auto').value==='consignado';$('edit-label-precio').textContent=c?'Precio de Venta Esperado':'Precio de Compra';$('edit-grupo-comision').style.display=c?'block':'none';}
+function tipoSueldoChange(){const t=$('emp-tipo').value;$('emp-com-row').style.display=(t==='comision'||t==='fijo_comision')?'grid':'none';$('emp-base').disabled=(t==='comision');if(t==='comision')$('emp-base').value='0';}
+
+// ══ INVENTARIO ═══════════════════════════════════════════════
+function agregarAuto(){
+  const marca=val('marca').trim(),modelo=val('modelo').trim(),ano=val('ano');
+  const precio=parseFloat(val('precio-compra')),gastos=parseFloat(val('gastos-extras'))||0;
+  const tipo=val('tipo-auto'),estado=val('estado-auto'),obs=val('observaciones').trim(),com=parseFloat(val('comision-consignado'))||0;
+  if(!marca||!modelo||!ano){toast('Completa marca, modelo y año','error');return;}
+  if(!precio){toast('Ingresa el precio','error');return;}
+  const plats=[...document.querySelectorAll('input[id^="publ-"]:checked')].map(c=>c.value);
+  autos.push({id:Date.now(),marca,modelo,ano:+ano,precioCompra:precio,gastosExtras:gastos,tipoAuto:tipo,comisionConsignado:tipo==='consignado'?com:0,estadoAuto:estado,observaciones:obs,plataformasPublicadas:plats,fechaIngreso:new Date().toISOString().slice(0,10)});
+  saveA();
+  ['marca','modelo','ano','precio-compra','observaciones'].forEach(id=>$(id).value='');
+  $('gastos-extras').value='0';$('tipo-auto').value='propio';$('comision-consignado').value='0';$('estado-auto').value='disponible';$('grupo-comision').style.display='none';$('label-precio').textContent='Precio de Compra';
+  document.querySelectorAll('input[id^="publ-"]').forEach(c=>c.checked=false);
+  renderAutos();renderDashboard();toast('Auto agregado');
+}
+function renderAutos(){
+  const tb=$('tabla-autos'),list=autos.filter(a=>a.estadoAuto!=='vendido');
+  if(!list.length){tb.innerHTML='<tr><td colspan="8" class="empty">No hay autos en el inventario</td></tr>';return;}
+  tb.innerHTML=list.map(a=>{
+    const tc=a.tipoAuto==='propio'?'b-green':'b-amber',ec=a.estadoAuto==='disponible'?'b-green':a.estadoAuto==='reservado'?'b-amber':'b-blue';
+    const inv=a.tipoAuto==='propio'?`<span class="amt">${fmtM(a.precioCompra+(a.gastosExtras||0))}</span>${a.gastosExtras>0?`<br><span class="muted">+${fmtM(a.gastosExtras)} gastos</span>`:''}`:`<span class="muted">Consignado<br>${fmtM(a.precioCompra)} · ${a.comisionConsignado}%</span>`;
+    return`<tr><td><strong>${a.marca}</strong></td><td>${a.modelo}</td><td>${a.ano}</td><td><span class="badge ${tc}">${a.tipoAuto}</span></td><td><span class="badge ${ec}">${a.estadoAuto}</span></td><td>${inv}</td><td style="font-size:12px">${platBadges(a.plataformasPublicadas)}</td><td><button type="button" class="act" data-action="editar" data-id="${a.id}">Editar</button><button type="button" class="act del" data-action="eliminar" data-id="${a.id}">Eliminar</button></td></tr>`;
+  }).join('');
+}
+function eliminarAuto(id){if(!confirm('¿Eliminar este auto?'))return;autos=autos.filter(a=>a.id!==id);saveA();refreshAll();fillSelect();toast('Auto eliminado');}
+
+// ══ VENTAS ═══════════════════════════════════════════════════
+function registrarVenta(){
+  const autoId=+val('auto-venta'),pventa=parseFloat(val('precio-venta'));
+  const plat=val('plataforma-venta'),com=parseFloat(val('comision-porcentaje'))||0;
+  const fecha=val('fecha-venta'),vend=val('vendedor').trim(),notas=val('notas-venta').trim();
+  if(!autoId||!pventa||!plat||!fecha){toast('Completa los campos requeridos','error');return;}
+  const auto=autos.find(a=>a.id===autoId);if(!auto){toast('Auto no encontrado','error');return;}
+  let pcompra,comMonto,ganancia;
+  if(auto.tipoAuto==='propio'){pcompra=auto.precioCompra+(auto.gastosExtras||0);comMonto=pventa*com/100;ganancia=pventa-pcompra-comMonto;}
+  else{pcompra=0;comMonto=pventa*auto.comisionConsignado/100;ganancia=comMonto;}
+  ventas.push({id:Date.now(),autoId,autoNombre:`${auto.marca} ${auto.modelo} ${auto.ano}`,precioCompra:pcompra,precioVenta:pventa,ganancia,plataforma:plat,comisionPorcentaje:auto.tipoAuto==='propio'?com:auto.comisionConsignado,comisionMonto:comMonto,fechaVenta:fecha,vendedor:vend,notas,tipoAuto:auto.tipoAuto});
+  auto.estadoAuto='vendido';saveA();saveV();
+  ['auto-venta','precio-venta','plataforma-venta','vendedor','notas-venta'].forEach(id=>$(id).value='');
+  $('comision-porcentaje').value='0';$('fecha-venta').value=new Date().toISOString().slice(0,10);
+  refreshAll();fillSelect();toast('Venta registrada');
+}
+function renderVentas(){
+  const tb=$('tabla-ventas');
+  if(!ventas.length){tb.innerHTML='<tr><td colspan="8" class="empty">Sin ventas registradas</td></tr>';return;}
+  tb.innerHTML=ventas.map(v=>{const g=v.ganancia>=0?`<span class="amt pos">${fmtM(v.ganancia)}</span>`:`<span class="amt neg">${fmtM(v.ganancia)}</span>`;const cp=v.tipoAuto==='propio'?`<span class="amt">${fmtM(v.precioCompra)}</span>`:'<em class="muted">Consignado</em>';return`<tr><td>${v.autoNombre}</td><td>${cp}</td><td class="amt">${fmtM(v.precioVenta)}</td><td>${g}</td><td>${v.plataforma}</td><td class="amt">${fmtM(v.comisionMonto)} (${v.comisionPorcentaje}%)</td><td>${v.fechaVenta}</td><td>${v.vendedor||'—'}</td></tr>`;}).join('');
+}
+function fillSelect(){
+  const sel=$('auto-venta');sel.innerHTML='<option value="">-- Seleccionar Auto --</option>';
+  autos.filter(a=>a.estadoAuto!=='vendido').forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=a.tipoAuto==='propio'?`${a.marca} ${a.modelo} ${a.ano} — ${fmtM(a.precioCompra)}`:`${a.marca} ${a.modelo} ${a.ano} — Consignado (${a.comisionConsignado}%)`;sel.appendChild(o);});
+}
+function renderVendidos(){
+  const tb=$('tabla-vendidos'),list=autos.filter(a=>a.estadoAuto==='vendido');
+  if(!list.length){tb.innerHTML='<tr><td colspan="7" class="empty">No hay autos vendidos aún</td></tr>';return;}
+  tb.innerHTML=list.map(a=>{const tc=a.tipoAuto==='propio'?'b-green':'b-amber';const inv=a.tipoAuto==='propio'?`<span class="amt">${fmtM(a.precioCompra+(a.gastosExtras||0))}</span>`:`<span class="muted">Consignado · ${a.comisionConsignado}%</span>`;return`<tr><td><strong>${a.marca}</strong></td><td>${a.modelo}</td><td>${a.ano}</td><td><span class="badge ${tc}">${a.tipoAuto}</span></td><td>${inv}</td><td style="font-size:12px">${platBadges(a.plataformasPublicadas)}</td><td><button type="button" class="act del" data-action="eliminar" data-id="${a.id}">Eliminar</button></td></tr>`;}).join('');
+}
+
+// ══ ANÁLISIS ═════════════════════════════════════════════════
+function renderPlataformas(){const el=$('resumen-plataformas'),data={};ventas.forEach(v=>{if(!data[v.plataforma])data[v.plataforma]={n:0,venta:0,com:0,gan:0};data[v.plataforma].n++;data[v.plataforma].venta+=v.precioVenta;data[v.plataforma].com+=v.comisionMonto;data[v.plataforma].gan+=v.ganancia;});if(!Object.keys(data).length){el.innerHTML='<p class="empty">Sin ventas aún</p>';return;}el.innerHTML=`<div class="tbl-wrap"><table><thead><tr><th>Plataforma</th><th>Vendidos</th><th>Monto Total</th><th>Comisiones</th><th>Ganancia Neta</th></tr></thead><tbody>${Object.entries(data).map(([p,d])=>`<tr><td><strong>${p}</strong></td><td>${d.n}</td><td class="amt">${fmtM(d.venta)}</td><td class="amt">${fmtM(d.com)}</td><td>${d.gan>=0?`<span class="amt pos">${fmtM(d.gan)}</span>`:`<span class="amt neg">${fmtM(d.gan)}</span>`}</td></tr>`).join('')}</tbody></table></div>`;}
+function renderRentabilidad(){const el=$('resumen-rentabilidad');if(!ventas.length){el.innerHTML='<p class="empty">Sin ventas aún</p>';return;}el.innerHTML=`<div class="tbl-wrap"><table><thead><tr><th>Auto</th><th>Tipo</th><th>Costo</th><th>Precio Venta</th><th>Ganancia</th><th>Margen</th><th>Días Stock</th></tr></thead><tbody>${ventas.map(v=>{const a=autos.find(x=>x.id===v.autoId);if(!a)return'';const m=v.precioVenta>0?((v.ganancia/v.precioVenta)*100).toFixed(1):0;const d=Math.max(0,Math.floor((new Date(v.fechaVenta)-new Date(a.fechaIngreso))/86400000));const c=a.tipoAuto==='propio'?`<span class="amt">${fmtM(v.precioCompra)}</span>`:`<span class="muted">Consignado · ${a.comisionConsignado}%</span>`;const g=v.ganancia>=0?`<span class="amt pos">${fmtM(v.ganancia)}</span>`:`<span class="amt neg">${fmtM(v.ganancia)}</span>`;return`<tr><td>${v.autoNombre}</td><td>${a.tipoAuto}</td><td>${c}</td><td class="amt">${fmtM(v.precioVenta)}</td><td>${g}</td><td><strong>${m}%</strong></td><td>${isNaN(d)?'—':d+' días'}</td></tr>`;}).join('')}</tbody></table></div>`;}
+function renderDashboard(){const nA=autos.length,nP=autos.filter(a=>a.tipoAuto==='propio').length,nC=autos.filter(a=>a.tipoAuto==='consignado').length,nV=autos.filter(a=>a.estadoAuto==='vendido').length;const inv=autos.filter(a=>a.tipoAuto==='propio'&&a.estadoAuto!=='vendido').reduce((s,a)=>s+a.precioCompra+(a.gastosExtras||0),0);const tv=ventas.reduce((s,v)=>s+v.precioVenta,0),tg=ventas.reduce((s,v)=>s+v.ganancia,0),mg=tv>0?((tg/tv)*100).toFixed(1):0;$('total-autos').textContent=nA;$('total-propios').textContent=nP;$('total-consignados').textContent=nC;$('total-vendidos').textContent=nV;$('inversion-total').textContent=fmtM(inv);$('ventas-total').textContent=fmtM(tv);$('ganancia-neta').textContent=fmtM(tg);$('margen-porcentaje').textContent=mg+'%';}
+
+// ══ MODAL EDITAR ═════════════════════════════════════════════
+let editId=null;
+function abrirEditar(id){const a=autos.find(x=>x.id===id);if(!a)return;editId=id;$('edit-marca').value=a.marca;$('edit-modelo').value=a.modelo;$('edit-ano').value=a.ano;$('edit-tipo-auto').value=a.tipoAuto;$('edit-precio-compra').value=a.precioCompra;$('edit-gastos-extras').value=a.gastosExtras||0;$('edit-comision-consignado').value=a.comisionConsignado||0;$('edit-estado-auto').value=a.estadoAuto;$('edit-observaciones').value=a.observaciones||'';editTipoChange();document.querySelectorAll('input[id^="edit-publ-"]').forEach(c=>c.checked=a.plataformasPublicadas?.includes(c.value)||false);$('modal-editar').style.display='block';}
+function cerrarModal(){$('modal-editar').style.display='none';editId=null;}
+function guardarEdicion(){if(!editId)return;const a=autos.find(x=>x.id===editId);if(!a)return;const marca=val('edit-marca').trim(),modelo=val('edit-modelo').trim(),ano=val('edit-ano');if(!marca||!modelo||!ano){toast('Completa marca, modelo y año','error');return;}const tipo=val('edit-tipo-auto');const plats=[...document.querySelectorAll('input[id^="edit-publ-"]:checked')].map(c=>c.value);Object.assign(a,{marca,modelo,ano:+ano,precioCompra:parseFloat(val('edit-precio-compra')),gastosExtras:parseFloat(val('edit-gastos-extras'))||0,tipoAuto:tipo,comisionConsignado:tipo==='consignado'?parseFloat(val('edit-comision-consignado'))||0:0,estadoAuto:val('edit-estado-auto'),observaciones:val('edit-observaciones').trim(),plataformasPublicadas:plats});saveA();cerrarModal();refreshAll();toast('Auto actualizado');}
+
+// ══ SUELDOS ══════════════════════════════════════════════════
+function agregarEmpleado(){const nombre=val('emp-nombre').trim();if(!nombre){toast('Ingresa el nombre del empleado','error');return;}empleados.push({id:Date.now(),nombre,cargo:val('emp-cargo').trim(),tipo:val('emp-tipo'),base:parseFloat(val('emp-base'))||0,comPct:parseFloat(val('emp-comision-pct'))||0,comBase:val('emp-com-base')});saveE();['emp-nombre','emp-cargo'].forEach(id=>$(id).value='');$('emp-base').value='0';$('emp-comision-pct').value='0';$('emp-tipo').value='fijo';$('emp-com-row').style.display='none';renderSueldos();toast('Empleado agregado');}
+function eliminarEmpleado(id){if(!confirm('¿Eliminar empleado?'))return;empleados=empleados.filter(e=>e.id!==id);saveE();renderSueldos();toast('Empleado eliminado');}
+function calcCom(emp){const now=new Date();const base=ventas.filter(v=>{const d=new Date(v.fechaVenta);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,v)=>s+(emp.comBase==='ganancia'?Math.max(0,v.ganancia):v.precioVenta),0);return base*emp.comPct/100;}
+function renderSueldos(){const tb=$('tabla-empleados');if(!empleados.length){tb.innerHTML='<tr><td colspan="8" class="empty">No hay empleados</td></tr>';$('resumen-sueldos').innerHTML='';return;}let total=0;tb.innerHTML=empleados.map(e=>{const com=(e.tipo==='fijo_comision'||e.tipo==='comision')?calcCom(e):0;const tot=e.base+com;total+=tot;const tl=e.tipo==='fijo'?'Fijo':e.tipo==='fijo_comision'?'Fijo+Com.':'Solo Com.';const tc=e.tipo==='fijo'?'b-blue':e.tipo==='fijo_comision'?'b-amber':'b-green';const cc=e.tipo==='fijo'?'—':`<span class="amt pos">${fmtM(com)}</span><br><span class="muted">${e.comPct}% s/${e.comBase==='ganancia'?'ganancia':'venta'}</span>`;return`<tr><td><strong>${e.nombre}</strong></td><td>${e.cargo||'—'}</td><td><span class="badge ${tc}">${tl}</span></td><td class="amt">${fmtM(e.base)}</td><td>${e.tipo==='fijo'?'—':e.comPct+'%'}</td><td>${cc}</td><td><strong class="amt">${fmtM(tot)}</strong></td><td><button type="button" class="act del" data-action="del-emp" data-id="${e.id}">Eliminar</button></td></tr>`;}).join('');const gan=ventas.reduce((s,v)=>s+v.ganancia,0);const mn=new Date().toLocaleString('es-CL',{month:'long',year:'numeric'});$('resumen-sueldos').innerHTML=`<div style="font-size:14px;font-weight:700;margin-bottom:12px">Resumen — ${mn.charAt(0).toUpperCase()+mn.slice(1)}</div><div class="sueldo-kpi"><div class="kpi"><div class="kpi-label">Empleados</div><div class="kpi-value">${empleados.length}</div></div><div class="kpi"><div class="kpi-label">Total Sueldos</div><div class="kpi-value" style="color:#dc2626">${fmtM(total)}</div></div><div class="kpi"><div class="kpi-label">Utilidad Neta Est.</div><div class="kpi-value" style="color:#16a34a">${fmtM(gan-total)}</div></div></div>`;}
+
+// ══ REPORTES ═════════════════════════════════════════════════
+const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function getAnios(){const y=new Set([new Date().getFullYear()]);ventas.forEach(v=>{if(v.fechaVenta)y.add(+v.fechaVenta.slice(0,4));});return[...y].sort((a,b)=>b-a);}
+function buildMensual(yr){
+  const m=Array.from({length:12},(_,i)=>({mes:i,label:MES[i],ventas:0,ingresos:0,costos:0,extras:0,comisiones:0,ganancia:0,sueldos:0}));
+  ventas.forEach(v=>{if(!v.fechaVenta)return;const d=new Date(v.fechaVenta);if(d.getFullYear()!==yr)return;const mx=m[d.getMonth()];mx.ventas++;mx.ingresos+=v.precioVenta;mx.costos+=v.precioCompra;mx.comisiones+=v.comisionMonto;mx.ganancia+=v.ganancia;const a=autos.find(x=>x.id===v.autoId);if(a)mx.extras+=a.gastosExtras||0;});
+  const sf=empleados.reduce((s,e)=>e.tipo==='fijo'?s+e.base:s,0);
+  m.forEach(mx=>{mx.sueldos=sf;});
+  empleados.filter(e=>e.tipo!=='fijo').forEach(e=>{m.forEach(mx=>{const b=e.comBase==='ganancia'?Math.max(0,mx.ganancia):mx.ingresos;mx.sueldos+=b*e.comPct/100;});});
+  m.forEach(mx=>{mx.utilidad=mx.ganancia-mx.sueldos;mx.margen=mx.ingresos>0?(mx.ganancia/mx.ingresos*100):0;});
+  return m;
+}
+function svgBar(data,cFn,vFn,lbl,h=200){
+  const max=Math.max(...data.map(vFn),1),min=Math.min(...data.map(vFn),0),range=max-min||1;
+  const W=600,H=h,pad=36,bw=(W-pad*2)/data.length*.6,gap=(W-pad*2)/data.length;
+  const ys=v=>H-pad-((v-min)/range)*(H-pad*2),zero=ys(0);
+  let bars='',lbs='',vals='';
+  data.forEach((d,i)=>{const v=vFn(d),x=pad+i*gap+gap/2-bw/2,y=Math.min(ys(v),zero),bh=Math.abs(ys(v)-zero);
+    if(bh>0)bars+=`<rect class="chart-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(bh,1).toFixed(1)}" fill="${cFn(d,i)}" rx="3"><title>${d.label}: ${fmtM(v)}</title></rect>`;
+    lbs+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#94a3b8">${d.label}</text>`;
+    if(bh>14){const f=Math.abs(v)>=1000000?(v/1000000).toFixed(1)+'M':Math.abs(v)>=1000?(v/1000).toFixed(0)+'K':v.toFixed(0);vals+=`<text x="${(x+bw/2).toFixed(1)}" y="${(y-3).toFixed(1)}" text-anchor="middle" font-size="9" fill="#475569" font-weight="600">${f}</text>`;}
+  });
+  return`<svg class="chart-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><line x1="${pad}" y1="${zero.toFixed(1)}" x2="${W-pad}" y2="${zero.toFixed(1)}" stroke="#e2e8f0" stroke-width="1"/>${bars}${vals}${lbs}</svg><div class="chart-legend"><span><i style="background:${cFn(data[0],0)}"></i>${lbl}</span></div>`;
+}
+function svgLine(data,color,vFn,h=200){
+  const vals=data.map(vFn),max=Math.max(...vals,1),min=Math.min(...vals,0),range=max-min||1;
+  const W=600,H=h,pad=36,gap=(W-pad*2)/(data.length-1||1);
+  const py=v=>H-pad-((v-min)/range)*(H-pad*2),px=i=>pad+i*gap;
+  const pts=data.map((_,i)=>`${px(i).toFixed(1)},${py(vals[i]).toFixed(1)}`).join(' ');
+  const dots=data.map((d,i)=>`<circle cx="${px(i).toFixed(1)}" cy="${py(vals[i]).toFixed(1)}" r="4" fill="${color}" stroke="#fff" stroke-width="2"><title>${d.label}: ${vals[i].toFixed(1)}%</title></circle>`).join('');
+  const lbs=data.map((_,i)=>`<text x="${px(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#94a3b8">${data[i].label}</text>`).join('');
+  return`<svg class="chart-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><line x1="${pad}" y1="${py(0).toFixed(1)}" x2="${W-pad}" y2="${py(0).toFixed(1)}" stroke="#e2e8f0" stroke-width="1"/><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>${dots}${lbs}</svg><div class="chart-legend"><span><i style="background:${color}"></i>Margen % sobre ventas</span></div>`;
+}
+function renderReportes(){
+  const sel=$('reporte-anio'),anios=getAnios(),selAnio=+sel.value||anios[0];
+  sel.innerHTML=anios.map(y=>`<option value="${y}" ${y===selAnio?'selected':''}>${y}</option>`).join('');
+  const data=buildMensual(selAnio);
+  const tV=data.reduce((s,m)=>s+m.ventas,0),tI=data.reduce((s,m)=>s+m.ingresos,0),tG=data.reduce((s,m)=>s+m.ganancia,0),tS=data.reduce((s,m)=>s+m.sueldos,0),tU=data.reduce((s,m)=>s+m.utilidad,0),mA=tI>0?(tG/tI*100).toFixed(1):0;
+  $('rep-kpis').innerHTML=`<div class="kpi"><div class="kpi-label">Autos Vendidos ${selAnio}</div><div class="kpi-value">${tV}</div></div><div class="kpi"><div class="kpi-label">Ingresos</div><div class="kpi-value" style="font-size:20px">${fmtM(tI)}</div></div><div class="kpi"><div class="kpi-label">Ganancia Bruta</div><div class="kpi-value" style="font-size:20px;color:${tG>=0?'#16a34a':'#dc2626'}">${fmtM(tG)}</div></div><div class="kpi"><div class="kpi-label">Sueldos Anuales</div><div class="kpi-value" style="font-size:20px;color:#dc2626">${fmtM(tS)}</div></div><div class="kpi"><div class="kpi-label">Utilidad Neta</div><div class="kpi-value" style="font-size:20px;color:${tU>=0?'#16a34a':'#dc2626'}">${fmtM(tU)}</div></div><div class="kpi"><div class="kpi-label">Margen Anual</div><div class="kpi-value" style="font-size:20px">${mA}%</div></div>`;
+  const W=600,H=200,pad=36,gap=(W-pad*2)/12,bw=gap*.35,maxI=Math.max(...data.map(m=>m.ingresos),1);
+  let b1='',b2='',lbs='';
+  data.forEach((m,i)=>{const x=pad+i*gap+gap/2,h1=Math.max((m.ingresos/maxI)*(H-pad*2),1),h2=Math.max(((m.costos+m.extras+m.comisiones)/maxI)*(H-pad*2),1);b1+=`<rect class="chart-bar" x="${(x-bw-1).toFixed(1)}" y="${(H-pad-h1).toFixed(1)}" width="${bw.toFixed(1)}" height="${h1.toFixed(1)}" fill="#2563eb" rx="2"><title>${m.label} Ingresos: ${fmtM(m.ingresos)}</title></rect>`;b2+=`<rect class="chart-bar" x="${(x+1).toFixed(1)}" y="${(H-pad-h2).toFixed(1)}" width="${bw.toFixed(1)}" height="${h2.toFixed(1)}" fill="#f97316" rx="2"><title>${m.label} Costos: ${fmtM(m.costos+m.extras+m.comisiones)}</title></rect>`;lbs+=`<text x="${x.toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#94a3b8">${m.label}</text>`;});
+  $('chart-ingresos').innerHTML=`<svg class="chart-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#e2e8f0" stroke-width="1"/>${b1}${b2}${lbs}</svg><div class="chart-legend"><span><i style="background:#2563eb"></i>Ingresos</span><span><i style="background:#f97316"></i>Costos+Gastos+Com.</span></div>`;
+  $('chart-ganancia').innerHTML=svgBar(data,(_,i)=>data[i].ganancia>=0?'#16a34a':'#dc2626',m=>m.ganancia,'Ganancia bruta por mes');
+  $('chart-unidades').innerHTML=svgBar(data,()=>'#2563eb',m=>m.ventas,'Autos vendidos');
+  $('chart-margen').innerHTML=svgLine(data,'#7c3aed',m=>m.margen);
+  const filas=data.filter(m=>m.ventas>0||m.ingresos>0);
+  $('tabla-reporte-mensual').innerHTML=!filas.length?`<tr><td colspan="10" class="empty">Sin datos para ${selAnio}</td></tr>`:filas.map(m=>`<tr><td><strong>${m.label} ${selAnio}</strong></td><td style="text-align:center">${m.ventas}</td><td class="amt">${fmtM(m.ingresos)}</td><td class="amt">${fmtM(m.costos)}</td><td class="amt">${fmtM(m.extras)}</td><td class="amt">${fmtM(m.comisiones)}</td><td class="amt ${m.ganancia>=0?'pos':'neg'}">${fmtM(m.ganancia)}</td><td><strong>${m.margen.toFixed(1)}%</strong></td><td class="amt neg">${fmtM(m.sueldos)}</td><td class="amt ${m.utilidad>=0?'pos':'neg'}"><strong>${fmtM(m.utilidad)}</strong></td></tr>`).join('');
+}
+
+// ══ EXCEL ════════════════════════════════════════════════════
+function exportarExcel(){
+  if(!window.XLSX){toast('Librería no cargada, espera un momento','error');return;}
+  const wb=XLSX.utils.book_new(),now=new Date();
+  const ganT=ventas.reduce((s,v)=>s+v.ganancia,0),vtaT=ventas.reduce((s,v)=>s+v.precioVenta,0),costT=ventas.reduce((s,v)=>s+v.precioCompra,0),extT=autos.reduce((s,a)=>s+(a.gastosExtras||0),0);
+  const invA=autos.filter(a=>a.tipoAuto==='propio'&&a.estadoAuto!=='vendido').reduce((s,a)=>s+a.precioCompra+(a.gastosExtras||0),0);
+  const suelT=empleados.reduce((s,e)=>{const c=(e.tipo==='fijo_comision'||e.tipo==='comision')?calcCom(e):0;return s+e.base+c;},0);
+  const mg=vtaT>0?((ganT/vtaT)*100).toFixed(1):0;
+  const ws1=XLSX.utils.aoa_to_sheet([['RESUMEN GENERAL — GestCar'],['Generado:',now.toLocaleDateString('es-CL')],[''],['INDICADOR','MONTO'],['Autos propios activos',autos.filter(a=>a.tipoAuto==='propio'&&a.estadoAuto!=='vendido').length],['Inversión en inventario ($)',invA],['Total ventas',ventas.length],['Ingresos por ventas ($)',vtaT],['Costo compras ($)',costT],['Gastos extras ($)',extT],['Ganancia bruta ($)',ganT],['Sueldos mes actual ($)',suelT],['Utilidad neta ($)',ganT-suelT],['Margen (%)',parseFloat(mg)]]);
+  ws1['!cols']=[{wch:35},{wch:20}];XLSX.utils.book_append_sheet(wb,ws1,'Resumen');
+  const vtaR=[['Auto','Tipo','Precio Compra ($)','Gastos Extras ($)','Precio Venta ($)','Comisión ($)','Ganancia ($)','Margen %','Plataforma','Fecha','Vendedor','Notas']];
+  ventas.forEach(v=>{const ao=autos.find(a=>a.id===v.autoId);vtaR.push([v.autoNombre,v.tipoAuto,v.precioCompra,ao?ao.gastosExtras||0:0,v.precioVenta,v.comisionMonto,v.ganancia,v.precioVenta>0?+((v.ganancia/v.precioVenta)*100).toFixed(1):0,v.plataforma,v.fechaVenta,v.vendedor||'',v.notas||'']);});
+  if(ventas.length)vtaR.push(['TOTALES','',costT,extT,vtaT,ventas.reduce((s,v)=>s+v.comisionMonto,0),ganT,'','','','','']);
+  const ws2=XLSX.utils.aoa_to_sheet(vtaR);ws2['!cols']=[{wch:28},{wch:12},{wch:16},{wch:14},{wch:16},{wch:14},{wch:14},{wch:10},{wch:16},{wch:12},{wch:16},{wch:20}];XLSX.utils.book_append_sheet(wb,ws2,'Ventas Detalladas');
+  const invR=[['Marca','Modelo','Año','Tipo','Estado','Precio Compra ($)','Gastos Extras ($)','Inversión Total ($)','Comisión%','Publicado en','Observaciones','Fecha Ingreso']];
+  autos.forEach(a=>invR.push([a.marca,a.modelo,a.ano,a.tipoAuto,a.estadoAuto,a.tipoAuto==='propio'?a.precioCompra:0,a.gastosExtras||0,a.tipoAuto==='propio'?a.precioCompra+(a.gastosExtras||0):0,a.tipoAuto==='consignado'?a.comisionConsignado:0,(a.plataformasPublicadas||[]).join(', '),a.observaciones||'',a.fechaIngreso||'']));
+  const ws3=XLSX.utils.aoa_to_sheet(invR);XLSX.utils.book_append_sheet(wb,ws3,'Inventario');
+  const sR=[['Empleado','Cargo','Tipo','Base ($)','Com%','Base Cálculo','Comisión ($)','Total Mes ($)']];let stot=0;
+  empleados.forEach(e=>{const c=(e.tipo==='fijo_comision'||e.tipo==='comision')?calcCom(e):0;const t=e.base+c;stot+=t;sR.push([e.nombre,e.cargo||'',e.tipo==='fijo'?'Fijo':e.tipo==='fijo_comision'?'Fijo+Com':'Solo Com',e.base,e.comPct,e.comBase==='ganancia'?'Ganancia neta':'Precio venta',c,t]);});
+  if(empleados.length)sR.push(['TOTAL','','','','','','',stot]);
+  const ws4=XLSX.utils.aoa_to_sheet(sR);XLSX.utils.book_append_sheet(wb,ws4,'Sueldos');
+  const pD={};ventas.forEach(v=>{if(!pD[v.plataforma])pD[v.plataforma]={n:0,v:0,c:0,g:0};pD[v.plataforma].n++;pD[v.plataforma].v+=v.precioVenta;pD[v.plataforma].c+=v.comisionMonto;pD[v.plataforma].g+=v.ganancia;});
+  const pR=[['Plataforma','Ventas','Monto ($)','Comisiones ($)','Ganancia ($)','Margen%']];
+  Object.entries(pD).forEach(([p,d])=>pR.push([p,d.n,d.v,d.c,d.g,d.v>0?+((d.g/d.v)*100).toFixed(1):0]));
+  const ws5=XLSX.utils.aoa_to_sheet(pR);XLSX.utils.book_append_sheet(wb,ws5,'Plataformas');
+  const ms=now.toLocaleDateString('es-CL',{month:'2-digit',year:'numeric'}).replace('/','_');
+  XLSX.writeFile(wb,'GestCar_'+ms+'.xlsx');
+  toast('Excel descargado ✓');
+}
+
+
+// ══ BACKUP / PORTABILIDAD ════════════════════════════════════
+function autoBackup(){
+  if(!me)return;
+  // Always keep a rolling backup under a stable key not tied to the platform URL
+  const pkg={v:1,ukey:me.ukey,nombre:me.nombre,email:me.email,
+    autos,ventas,empleados,ts:Date.now()};
+  try{localStorage.setItem('gc__backup:'+me.ukey, JSON.stringify(pkg));}catch(e){}
+}
+
+function exportarBackup(){
+  if(!me)return;
+  const pkg={v:1,ukey:me.ukey,nombre:me.nombre,email:me.email,
+    autos,ventas,empleados,ts:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(pkg,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='GestCar_backup_'+me.nombre.replace(/\s+/g,'-')+'_'+new Date().toLocaleDateString('es-CL').replace(/\//g,'-')+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('Backup descargado ✓');
+}
+
+function importarBackup(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    const text=await file.text();
+    try{
+      const pkg=JSON.parse(text);
+      if(!pkg.autos||!pkg.ventas||!pkg.ukey){toast('Archivo inválido','error');return;}
+      if(pkg.ukey!==me.ukey){
+        if(!confirm('Este backup es de otra cuenta ('+pkg.email+'). ¿Importar de todas formas?'))return;
+      }
+      const nA=pkg.autos.length,nV=pkg.ventas.length;
+      if(!confirm('Se importarán '+nA+' autos y '+nV+' ventas. ¿Continuar? (los datos actuales se reemplazarán)'))return;
+      autos=pkg.autos;ventas=pkg.ventas;empleados=pkg.empleados||[];
+      saveA();saveV();saveE();
+      refreshAll();
+      toast('Backup importado: '+nA+' autos, '+nV+' ventas ✓');
+    }catch(ex){toast('Error al leer el archivo','error');}
+  };
+  input.click();
+}
+
+function restaurarDesdeBackup(){
+  // Auto-restore from backup if main data is empty but backup exists
+  if(!me)return false;
+  const raw=localStorage.getItem('gc__backup:'+me.ukey);
+  if(!raw)return false;
+  try{
+    const pkg=JSON.parse(raw);
+    if((!autos.length||!ventas.length)&&(pkg.autos.length||pkg.ventas.length)){
+      autos=pkg.autos||[];ventas=pkg.ventas||[];empleados=pkg.empleados||[];
+      saveA();saveV();saveE();
+      toast('Datos restaurados desde backup automático ✓');
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+
+// ══ ROLES ════════════════════════════════════════════════════
+// role: 'owner' = full access | 'seller' = inventario+vendidos+plataformas only
+const SELLER_TABS = ['autos','vendidos','plataformas'];
+const OWNER_TABS  = ['dashboard','autos','vendidos','ventas','plataformas','rentabilidad','sueldos','reportes','vendedores'];
+
+function applyRole(){
+  const isSeller = me.role==='seller';
+  // Show/hide tabs
+  document.querySelectorAll('.tab[data-tab]').forEach(btn=>{
+    const tab=btn.dataset.tab;
+    const allowed = isSeller ? SELLER_TABS.includes(tab) : OWNER_TABS.includes(tab);
+    btn.style.display = allowed ? '' : 'none';
+  });
+  // Hide topbar items for sellers
+  if(isSeller){
+    $('btn-backup-export').style.display='none';
+    $('btn-backup-import').style.display='none';
+    $('btn-admin-from-app').style.display='none';
+    $('btn-export').style.display='none';
+  } else {
+    $('tab-vendedores').style.display='';
+  }
+  // First tab to show
+  const first = isSeller ? 'autos' : 'dashboard';
+  switchTab(first);
+}
+
+// ══ SELLER CRUD (owner only) ══════════════════════════════════
+function crearVendedor(){
+  const nombre=val('vend-nombre').trim(), email=val('vend-email').trim().toLowerCase();
+  const tel=val('vend-tel').trim(), pass=val('vend-pass').trim();
+  if(!nombre||!email||!pass){toast('Completa nombre, correo y contraseña','error');return;}
+  if(pass.length<6){toast('La contraseña debe tener al menos 6 caracteres','error');return;}
+  const ukey=email.replace(/[@.]/g,'-');
+  if(S.get('acc:'+ukey)){toast('Ya existe una cuenta con ese correo','error');return;}
+  // Hash password (sync-style using simple hash for sellers — PBKDF2 via async)
+  _crearVendedorAsync(nombre,email,tel,pass,ukey);
+}
+
+async function _crearVendedorAsync(nombre,email,tel,pass,ukey){
+  loading('Creando vendedor...');
+  const pwd=await hashPwd(pass,ukey);
+  S.set('acc:'+ukey,{
+    email,ukey,nombre,tel,pwd,v:2,
+    role:'seller',
+    ownerUkey:me.ukey,      // linked to this owner
+    status:'aprobada',      // auto-approved by owner
+    fechaReg:new Date().toLocaleDateString('es-CL')
+  });
+  stopLoading();
+  ['vend-nombre','vend-email','vend-tel','vend-pass'].forEach(id=>$(id).value='');
+  renderVendedores();
+  toast('Vendedor creado ✓');
+  // WhatsApp notification if number provided
+  if(tel&&ADMIN_WA_NUMBER){
+    const msg=encodeURIComponent('Hola '+nombre+', tu acceso a GestCar está listo.\nCorreo: '+email+'\nContraseña: (la que te indicaron)\nIngresa en: '+window.location.href);
+    window.open('https://wa.me/'+tel.replace(/[^0-9]/g,'')+'?text='+msg,'_blank');
+  }
+}
+
+function renderVendedores(){
+  const tb=$('tabla-vendedores');
+  const vendedores=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||!k.startsWith('gc__acc:'))continue;
+    try{
+      const a=JSON.parse(localStorage.getItem(k));
+      if(a&&a.ownerUkey===me.ukey&&a.role==='seller') vendedores.push(a);
+    }catch(e){}
+  }
+  if(!vendedores.length){
+    tb.innerHTML='<tr><td colspan="6" class="empty">No hay vendedores creados aún</td></tr>';return;
+  }
+  tb.innerHTML=vendedores.map(v=>{
+    const st=v.status||'aprobada';
+    const pill=`<span class="s-pill s-${st}">${st}</span>`;
+    const waNum=(v.tel||'').replace(/[^0-9]/g,'');
+    const tel=waNum?`<a href="https://wa.me/${waNum}" target="_blank" style="color:#16a34a;font-weight:600;font-size:12px;text-decoration:none;">📱 ${v.tel}</a>`:'—';
+    const acts=st!=='cancelada'
+      ? `<button type="button" class="act del" data-action="toggle-vendedor" data-ukey="${v.ukey}" data-st="cancelar">Desactivar</button>`
+      : `<button type="button" class="act" data-action="toggle-vendedor" data-ukey="${v.ukey}" data-st="activar">Activar</button>`;
+    return`<tr><td><strong>${v.nombre}</strong></td><td style="font-size:12px">${v.email}</td><td>${tel}</td><td>${pill}</td><td>${v.fechaReg||'—'}</td><td>${acts}</td></tr>`;
+  }).join('');
+}
+
+function toggleVendedor(ukey,accion){
+  const acc=S.get('acc:'+ukey);if(!acc)return;
+  acc.status=accion==='cancelar'?'cancelada':'aprobada';
+  S.set('acc:'+ukey,acc);
+  renderVendedores();
+  toast(accion==='cancelar'?'Vendedor desactivado':'Vendedor activado');
+}
+
+// ══ ADMIN PASSWORD CHANGE ══════════════════════════════════════
+const ADMIN_PWD_STORE='gc__admin_pwd';
+function getAdminPwd(){return localStorage.getItem(ADMIN_PWD_STORE)||ADMIN_PWD;}
+
+function cambiarAdminPwd(){
+  const p1=val('admin-new-pwd1'),p2=val('admin-new-pwd2');
+  if(!p1||!p2){toast('Completa ambos campos','error');return;}
+  if(p1.length<6){toast('Mínimo 6 caracteres','error');return;}
+  if(p1!==p2){toast('Las contraseñas no coinciden','error');return;}
+  localStorage.setItem(ADMIN_PWD_STORE,p1);
+  $('admin-new-pwd1').value='';$('admin-new-pwd2').value='';
+  toast('Contraseña de administrador actualizada ✓');
+}
+
+
+// ══ RECUPERAR CONTRASEÑA ══════════════════════════════════════
+function showForgot(){
+  document.querySelectorAll('.seg-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.auth-panel').forEach(p=>p.classList.remove('active'));
+  $('form-forgot').classList.add('active');
+  $('forgot-result').style.display='none';
+  $('forgot-msg').style.display='none';
+  $('forgot-err').style.display='none';
+  $('forgot-email').value='';
+}
+
+function generarCodigo(){
+  const email=val('forgot-email').trim().toLowerCase();
+  const err=$('forgot-err');
+  err.style.display='none';
+  if(!email){err.textContent='Ingresa tu correo.';err.style.display='block';return;}
+  const ukey=email.replace(/[@.]/g,'-');
+  const acc=S.get('acc:'+ukey);
+  if(!acc){err.textContent='No existe una cuenta con ese correo.';err.style.display='block';return;}
+  // Generate a 6-char reset code and store it with 24h expiry
+  const code=(Math.random().toString(36).substring(2,5)+Math.random().toString(36).substring(2,5)).toUpperCase();
+  const expiry=Date.now()+(24*60*60*1000);
+  S.set('reset:'+ukey,{code,expiry,email});
+  $('reset-code-display').textContent=code;
+  $('forgot-result').style.display='block';
+  // WhatsApp link to admin
+  const waDiv=$('wa-admin-link');
+  if(ADMIN_WA_NUMBER){
+    const msg=encodeURIComponent('Hola, necesito recuperar mi contraseña en GestCar.\nCorreo: '+email+'\nCódigo de recuperación: '+code+'\nPor favor restablece mi acceso. ¡Gracias!');
+    waDiv.innerHTML='<a href="https://wa.me/'+ADMIN_WA_NUMBER.replace(/[^0-9]/g,'')+'?text='+msg+'" target="_blank" style="display:inline-flex;align-items:center;gap:7px;background:#25d366;color:#fff;font-weight:700;font-size:13px;padding:9px 16px;border-radius:8px;text-decoration:none;margin-top:4px;">📱 Enviar código al administrador por WhatsApp</a>';
+  } else {
+    waDiv.innerHTML='<p style="font-size:12px;color:#64748b">Envía el código a tu administrador por el medio que prefieras.</p>';
+  }
+}
+
+
+async function adminRestablecerPwd(){
+  const email=val('admin-reset-email').trim().toLowerCase();
+  const code=val('admin-reset-code').trim().toUpperCase();
+  const newpwd=val('admin-reset-newpwd').trim();
+  if(!email||!code||!newpwd){toast('Completa todos los campos','error');return;}
+  if(newpwd.length<6){toast('Mínimo 6 caracteres','error');return;}
+  const ukey=email.replace(/[@.]/g,'-');
+  const acc=S.get('acc:'+ukey);
+  if(!acc){toast('No existe cuenta con ese correo','error');return;}
+  const reset=S.get('reset:'+ukey);
+  if(!reset||reset.code!==code){toast('Código incorrecto','error');return;}
+  if(Date.now()>reset.expiry){toast('Código expirado (24h). Pide uno nuevo.','error');return;}
+  loading('Actualizando contraseña...');
+  const pwd=await hashPwd(newpwd,ukey);
+  acc.pwd=pwd;acc.v=2;
+  S.set('acc:'+ukey,acc);
+  S.del('reset:'+ukey);
+  stopLoading();
+  ['admin-reset-email','admin-reset-code','admin-reset-newpwd'].forEach(id=>$(id).value='');
+  toast('Contraseña restablecida para '+acc.nombre+' ✓');
+}
+
+// ══ EVENTS ═══════════════════════════════════════════════════
+// Auth tabs
+$('tab-login-btn').addEventListener('click',()=>authTab('login'));
+$('tab-register-btn').addEventListener('click',()=>authTab('register'));
+// Auth forms
+$('btn-login').addEventListener('click',doLogin);
+$('btn-register').addEventListener('click',doRegister);
+// Enter key handled by form onsubmit
+$('reg-pass').addEventListener('input',e=>checkPwdStrength(e.target.value));
+$('btn-quick-login').addEventListener('click',quickLogin);
+// Admin — from login AND from app topbar
+$('btn-open-admin').addEventListener('click',openAdmin);
+$('btn-admin-from-app').addEventListener('click',openAdmin);
+$('btn-close-admin').addEventListener('click',closeAdmin);
+$('btn-admin-ingresar').addEventListener('click',adminLogin);
+$('btn-admin-refresh').addEventListener('click',loadAdminCuentas);
+$('btn-admin-export-csv').addEventListener('click',exportarUsuariosCSV);
+// Note input: save on blur or Enter
+$('admin-tabla').addEventListener('blur',e=>{
+  const inp=e.target.closest('[data-action="admin-nota"]');
+  if(inp)adminGuardarNota(inp.dataset.ukey,inp.value);
+},true);
+$('admin-tabla').addEventListener('keydown',e=>{
+  const inp=e.target.closest('[data-action="admin-nota"]');
+  if(inp&&e.key==='Enter'){adminGuardarNota(inp.dataset.ukey,inp.value);inp.blur();toast('Nota guardada');}
+});
+$('admin-pass').addEventListener('keydown',e=>{if(e.key==='Enter')adminLogin();});
+$('admin-modal').addEventListener('click',e=>{if(e.target===$('admin-modal'))closeAdmin();});
+// App
+$('btn-logout').addEventListener('click',doLogout);
+$('btn-backup-export').addEventListener('click',exportarBackup);
+$('btn-backup-import').addEventListener('click',importarBackup);
+$('btn-agregar-vendedor').addEventListener('click',crearVendedor);
+$('btn-admin-change-pwd').addEventListener('click',cambiarAdminPwd);
+$('btn-admin-reset-pwd').addEventListener('click',adminRestablecerPwd);
+$('btn-forgot').addEventListener('click',showForgot);
+$('btn-back-login').addEventListener('click',()=>authTab('login'));
+$('btn-forgot-send').addEventListener('click',generarCodigo);
+$('forgot-email').addEventListener('keydown',e=>{if(e.key==='Enter')generarCodigo();});
+$('btn-copy-code').addEventListener('click',()=>{
+  const code=$('reset-code-display').textContent;
+  navigator.clipboard.writeText(code).then(()=>toast('Código copiado ✓')).catch(()=>{
+    // fallback
+    const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('Código copiado ✓');
+  });
+});
+$('btn-backup-export').addEventListener('click',exportarBackup);
+$('btn-backup-import').addEventListener('click',importarBackup);
+$('btn-export').addEventListener('click',exportarExcel);
+document.querySelectorAll('.tab[data-tab]').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+$('reporte-anio').addEventListener('change',renderReportes);
+// Forms
+$('tipo-auto').addEventListener('change',cambiarTipoAuto);
+$('btn-agregar-auto').addEventListener('click',agregarAuto);
+$('btn-registrar-venta').addEventListener('click',registrarVenta);
+$('emp-tipo').addEventListener('change',tipoSueldoChange);
+$('btn-agregar-emp').addEventListener('click',agregarEmpleado);
+// Modal
+$('btn-modal-close').addEventListener('click',cerrarModal);
+$('btn-guardar-edicion').addEventListener('click',guardarEdicion);
+$('btn-cancelar-edicion').addEventListener('click',cerrarModal);
+$('modal-editar').addEventListener('click',e=>{if(e.target===$('modal-editar'))cerrarModal();});
+$('edit-tipo-auto').addEventListener('change',editTipoChange);
+// Delegated
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');if(!btn)return;
+  const id=+btn.dataset.id,ukey=btn.dataset.ukey;
+  if(btn.dataset.action==='editar')abrirEditar(id);
+  if(btn.dataset.action==='eliminar')eliminarAuto(id);
+  if(btn.dataset.action==='del-emp')eliminarEmpleado(id);
+  if(btn.dataset.action==='admin-aprobar')adminAccion(ukey,'aprobar');
+  if(btn.dataset.action==='admin-cancelar')adminAccion(ukey,'cancelar');
+  if(btn.dataset.action==='toggle-vendedor')toggleVendedor(ukey,btn.dataset.st);
+});
+
+// ══ INIT ═════════════════════════════════════════════════════
+(function init(){
+  // Try every possible session key (current and legacy formats)
+  const SESSION_KEYS=['gc_ses','gc__ses','gestcar_ses','gc-ses'];
+  let savedRaw=null, savedKey=null;
+  for(const k of SESSION_KEYS){
+    const v=localStorage.getItem(k)||sessionStorage.getItem(k);
+    if(v){savedRaw=v;savedKey=k;break;}
+  }
+
+  if(savedRaw){
+    try{
+      me=JSON.parse(savedRaw);
+      if(!me||!me.ukey)throw new Error('bad session');
+      me.role=me.role||'owner';me.ownerUkey=me.ownerUkey||null;
+
+      // Try to load data — try multiple key prefixes
+      const PREFIXES=['gc__','gc_','gestcar__',''];
+      function tryLoad(suffix){
+        for(const p of PREFIXES){
+          try{
+            const raw=localStorage.getItem(p+'u:'+me.ukey+':'+suffix);
+            if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)&&parsed.length)return parsed;}
+          }catch(e){}
+        }
+        return null;
+      }
+      // If seller, load owner's data instead
+      const dataUkey = (me.role==='seller'&&me.ownerUkey) ? me.ownerUkey : me.ukey;
+      const dKey = s => 'u:'+dataUkey+':'+s;
+      autos    = tryLoad('autos')    || S.get(dKey('autos'))    || [];
+      ventas   = tryLoad('ventas')   || S.get(dKey('ventas'))   || [];
+      empleados= tryLoad('empleados')|| S.get(dKey('empleados'))|| [];
+
+      // Migrate session key to current format if found under old key
+      if(savedKey!=='gc_ses'){
+        localStorage.setItem('gc_ses',savedRaw);
+        localStorage.removeItem(savedKey);
+      }
+
+      enterApp();
+      restaurarDesdeBackup();
+      return;
+    }catch(e){
+      SESSION_KEYS.forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k);});
+    }
+  }
+
+  // Quick-login banner — show if we know who the user is
+  const nombre=localStorage.getItem('gc_saved_nombre')||localStorage.getItem('gc__saved_nombre');
+  const email =localStorage.getItem('gc_saved_email') ||localStorage.getItem('gc__saved_email');
+  if(nombre&&email){
+    $('saved-nombre-text').textContent=nombre;
+    $('login-user').value=email;
+    const hasSes=SESSION_KEYS.some(k=>!!localStorage.getItem(k));
+    const btn=$('btn-quick-login');
+    if(hasSes){
+      btn.textContent='⚡ Entrar directo →';
+    } else {
+      btn.textContent='👉 Continuar como '+nombre;
+      btn.style.background='#475569';
+    }
+    $('quick-banner').style.display='block';
+    $('divider-or').style.display='block';
+  }
+})();
+</script>
+</body>
+</html>
